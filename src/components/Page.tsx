@@ -7,7 +7,7 @@ import NavBar, { NavBarProps } from "./NavBar";
 import NavButton from "./NavButton";
 
 export interface INavBarLink extends Omit<LinkProps, "children"> {
-  name: string;
+  content: string | JSX.Element;
 }
 
 export interface PageProps extends ViewProps {
@@ -35,8 +35,8 @@ export default function Page({
         {children}
       </ColumnView>
       <NavBar style={[styles.navBar, navBarStyle]} {...navBar}>
-        {links?.map(({ name, ...linkProps }) => (
-          <NavButton {...linkProps}>{name}</NavButton>
+        {links?.map(({ content, ...linkProps }) => (
+          <NavButton {...linkProps}>{content}</NavButton>
         ))}
       </NavBar>
     </ColumnView>

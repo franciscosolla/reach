@@ -6,22 +6,36 @@ import Row from "./Row";
 
 export interface NavBarProps extends ViewProps {
   children?: ReactElement<typeof NavButton> | ReactElement<typeof NavButton>[];
+  links?: ViewProps;
 }
 
-export default function NavBar({ children, style, ...viewProps }: ViewProps) {
+export default function NavBar({
+  children,
+  style,
+  links: { style: linksStyle, ...links } = {},
+  ...viewProps
+}: NavBarProps) {
   return (
     <Row style={[styles.container, style]} {...viewProps}>
       <Text>Reach</Text>
-      {children}
+      <Row style={[styles.links, linksStyle]} {...links}>
+        {children}
+      </Row>
     </Row>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 42,
     padding: 10,
+    paddingRight: 40,
     borderColor: "black",
     borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  links: {
+    flex: 0,
+    gap: 20,
   },
 });

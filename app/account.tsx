@@ -4,13 +4,13 @@ import { Text } from "react-native";
 
 import Page from "../src/components/Page";
 
-export default function App() {
+export default function Account() {
   return (
     <Page
       links={[
         {
-          href: "/create",
-          content: <Ionicons name="create-outline" size={24} color="black" />,
+          href: "/",
+          content: <Ionicons name="home-outline" size={24} color="black" />,
         },
         {
           href: "/account",
@@ -18,7 +18,7 @@ export default function App() {
         },
       ]}
     >
-      <Text>Open up App.js to start working on your app!</Text>
+      <Text>Account</Text>
     </Page>
   );
 }
