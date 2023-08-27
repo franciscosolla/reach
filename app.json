@@ -3,6 +3,7 @@
     "name": "reach",
     "slug": "reach",
     "version": "1.0.0",
+    "scheme": "reach",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -25,6 +26,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b1a1407d-c3ce-4f28-b9eb-5d82dbc3dc89"
+      }
+    },
+    "owner": "franciscosolla",
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
