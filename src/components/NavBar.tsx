@@ -1,5 +1,6 @@
 import { ReactElement } from "react";
-import { StyleSheet, Text, View, ViewProps } from "react-native";
+import { StyleSheet, Text, ViewProps } from "react-native";
+
 import NavButton from "./NavButton";
 import Row from "./Row";
 
@@ -10,12 +11,10 @@ export interface NavBarProps extends ViewProps {
 export default function NavBar({ children, style, ...viewProps }: ViewProps) {
   return (
     <Row style={[styles.container, style]} {...viewProps}>
-      <Text>
-        Reach
-      </Text>
+      <Text>Reach</Text>
       {children}
     </Row>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -24,5 +23,5 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: "black",
     borderWidth: 1,
-  }
+  },
 });

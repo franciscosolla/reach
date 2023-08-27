@@ -9,7 +9,7 @@ export default function Column({ children, style, ...viewProps }: ViewProps) {
     <View style={[styles.column, style]} {...viewProps}>
       {children}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
