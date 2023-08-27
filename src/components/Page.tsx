@@ -1,3 +1,4 @@
+import { Redirect } from "expo-router";
 import { LinkProps } from "expo-router/src/link/Link";
 import { StatusBar, StatusBarProps } from "expo-status-bar";
 import { StyleSheet, ViewProps } from "react-native";
@@ -5,6 +6,7 @@ import { StyleSheet, ViewProps } from "react-native";
 import ColumnView from "./Column";
 import NavBar, { NavBarProps } from "./NavBar";
 import NavButton from "./NavButton";
+import { auth } from "../firebase";
 
 export interface INavBarLink extends Omit<LinkProps, "children"> {
   content: string | JSX.Element;
@@ -14,7 +16,10 @@ export interface PageProps extends ViewProps {
   statusBar?: StatusBarProps;
   contentContainer?: ViewProps;
   navBar?: NavBarProps;
-  links?: INavBarLink[];
+  links?:
+    | React.ReactElement<typeof NavButton>
+    | React.ReactElement<typeof NavButton>[];
+  signed?: boolean;
 }
 
 export default function Page({
@@ -23,8 +28,13 @@ export default function Page({
   contentContainer: { style: contentContainerStyle, ...contentContainer } = {},
   navBar: { style: navBarStyle, ...navBar } = {},
   links,
+  signed,
   ...container
 }: PageProps) {
+  if (signed && !auth.currentUser) {
+    return <Redirect href="/sign" />;
+  }
+
   return (
     <ColumnView {...container}>
       <StatusBar {...statusBar} />
@@ -35,9 +45,7 @@ export default function Page({
         {children}
       </ColumnView>
       <NavBar style={[styles.navBar, navBarStyle]} {...navBar}>
-        {links?.map(({ content, ...linkProps }) => (
-          <NavButton {...linkProps}>{content}</NavButton>
-        ))}
+        {links}
       </NavBar>
     </ColumnView>
   );

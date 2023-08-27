@@ -1,23 +1,13 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { Text } from "react-native";
 
+import AccountNavButton from "../src/components/AccountNavButton";
+import HomeNavButton from "../src/components/HomeNavButton";
 import Page from "../src/components/Page";
 
 export default function Account() {
   return (
-    <Page
-      links={[
-        {
-          href: "/",
-          content: <Ionicons name="home-outline" size={24} color="black" />,
-        },
-        {
-          href: "/account",
-          content: <MaterialIcons name="account-box" size={24} color="black" />,
-        },
-      ]}
-    >
+    <Page links={[<HomeNavButton />, <AccountNavButton />]} signed>
       <Text>Account</Text>
     </Page>
   );
