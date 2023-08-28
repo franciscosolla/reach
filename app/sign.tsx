@@ -3,9 +3,7 @@ import React from "react";
 import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { TextInput, StyleSheet, Pressable, Text } from "react-native";
 
-import AccountNavButton from "../src/components/AccountNavButton";
 import Column from "../src/components/Column";
-import HomeNavButton from "../src/components/HomeNavButton";
 import Page from "../src/components/Page";
 import { auth } from "../src/firebase";
 
@@ -20,7 +18,7 @@ export default function Sign() {
   }
 
   return (
-    <Page links={[<HomeNavButton />, <AccountNavButton />]}>
+    <Page links={["/", "/account"]}>
       <Column style={styles.container}>
         <TextInput placeholder="E-mail" onChangeText={setEmail} />
         <TextInput placeholder="Password" onChangeText={setPassword} />

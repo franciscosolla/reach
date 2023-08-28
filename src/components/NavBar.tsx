@@ -1,11 +1,12 @@
-import { ReactElement } from "react";
+import React from "react";
 import { StyleSheet, Text, ViewProps } from "react-native";
 
 import NavButton from "./NavButton";
 import Row from "./Row";
+import routes, { IRouteKey } from "../routes";
 
 export interface NavBarProps extends ViewProps {
-  children?: ReactElement<typeof NavButton> | ReactElement<typeof NavButton>[];
+  children?: IRouteKey[];
   links?: ViewProps;
 }
 
@@ -19,7 +20,11 @@ export default function NavBar({
     <Row style={[styles.container, style]} {...viewProps}>
       <Text>Reach</Text>
       <Row style={[styles.links, linksStyle]} {...links}>
-        {children}
+        {children.map((route) => (
+          <NavButton key={route} href={route}>
+            {routes[route].icon}
+          </NavButton>
+        ))}
       </Row>
     </Row>
   );

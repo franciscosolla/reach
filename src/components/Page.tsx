@@ -5,8 +5,8 @@ import { StyleSheet, ViewProps } from "react-native";
 
 import ColumnView from "./Column";
 import NavBar, { NavBarProps } from "./NavBar";
-import NavButton from "./NavButton";
 import { auth } from "../firebase";
+import { IRouteKey } from "../routes";
 
 export interface INavBarLink extends Omit<LinkProps, "children"> {
   content: string | JSX.Element;
@@ -16,9 +16,7 @@ export interface PageProps extends ViewProps {
   statusBar?: StatusBarProps;
   contentContainer?: ViewProps;
   navBar?: NavBarProps;
-  links?:
-    | React.ReactElement<typeof NavButton>
-    | React.ReactElement<typeof NavButton>[];
+  links?: IRouteKey[];
   signed?: boolean;
 }
 
