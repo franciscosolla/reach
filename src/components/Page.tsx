@@ -1,10 +1,13 @@
 import { Redirect } from "expo-router";
 import { LinkProps } from "expo-router/src/link/Link";
 import { StatusBar, StatusBarProps } from "expo-status-bar";
+import { useEffect } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { StyleSheet, ViewProps } from "react-native";
 
 import ColumnView from "./Column";
 import NavBar, { NavBarProps } from "./NavBar";
+import SignModal, { useSignModal } from "./SignModal";
 import { auth } from "../firebase";
 import { IRouteKey } from "../routes";
 
@@ -17,7 +20,7 @@ export interface PageProps extends ViewProps {
   contentContainer?: ViewProps;
   navBar?: NavBarProps;
   links?: IRouteKey[];
-  signed?: boolean;
+  userRole?: "guest" | "user";
 }
 
 export default function Page({
@@ -26,11 +29,20 @@ export default function Page({
   contentContainer: { style: contentContainerStyle, ...contentContainer } = {},
   navBar: { style: navBarStyle, ...navBar } = {},
   links,
-  signed,
+  userRole,
   ...container
 }: PageProps) {
-  if (signed && !auth.currentUser) {
-    return <Redirect href="/sign" />;
+  const [user] = useAuthState(auth);
+  const { openSignModal } = useSignModal();
+
+  useEffect(() => {
+    if (userRole === "user" && !user) {
+      return openSignModal;
+    }
+  }, [userRole, user]);
+
+  if (userRole === "user" && !user) {
+    return <Redirect href="/" />;
   }
 
   return (
@@ -45,6 +57,7 @@ export default function Page({
       <NavBar style={[styles.navBar, navBarStyle]} {...navBar}>
         {links}
       </NavBar>
+      <SignModal />
     </ColumnView>
   );
 }

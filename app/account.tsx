@@ -5,7 +5,7 @@ import Page from "../src/components/Page";
 
 export default function Account() {
   return (
-    <Page links={["/", "/account"]} signed>
+    <Page links={["/", "/account"]} userRole="user">
       <Text>Account</Text>
     </Page>
   );

@@ -21,7 +21,7 @@ export default function NavBar({
       <Text>Reach</Text>
       <Row style={[styles.links, linksStyle]} {...links}>
         {children.map((route) => (
-          <NavButton key={route} href={route}>
+          <NavButton key={route} href={route} userRole={routes[route].userRole}>
             {routes[route].icon}
           </NavButton>
         ))}
