@@ -1,8 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, ViewProps } from "react-native";
+import { StyleSheet, ViewProps } from "react-native";
 
-import NavButton from "./NavButton";
-import Row from "./Row";
+import { NavButton } from "./NavButton";
+import { Row } from "./Row";
+import Text from "./Text";
+import Colors from "../colors";
 import routes, { IRouteKey } from "../routes";
 
 export interface NavBarProps extends ViewProps {
@@ -32,15 +34,14 @@ export default function NavBar({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
+    paddingLeft: 10,
     paddingRight: 40,
-    borderColor: "black",
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "space-between",
+    backgroundColor: Colors.surface.background.primary,
   },
   links: {
     flex: 0,
-    gap: 20,
+    gap: 100,
   },
 });

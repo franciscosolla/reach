@@ -5,9 +5,10 @@ import { useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { StyleSheet, ViewProps } from "react-native";
 
-import ColumnView from "./Column";
+import Column from "./Column";
 import NavBar, { NavBarProps } from "./NavBar";
 import SignModal, { useSignModal } from "./SignModal";
+import Colors from "../colors";
 import { auth } from "../firebase";
 import { IRouteKey } from "../routes";
 
@@ -25,11 +26,16 @@ export interface PageProps extends ViewProps {
 
 export default function Page({
   children,
-  statusBar,
+  statusBar: {
+    style: statusBasrStyle,
+    backgroundColor: statusBarBackgroundColor,
+    ...statusBar
+  } = {},
   contentContainer: { style: contentContainerStyle, ...contentContainer } = {},
   navBar: { style: navBarStyle, ...navBar } = {},
   links,
   userRole,
+  style,
   ...container
 }: PageProps) {
   const [user] = useAuthState(auth);
@@ -46,23 +52,32 @@ export default function Page({
   }
 
   return (
-    <ColumnView {...container}>
-      <StatusBar {...statusBar} />
-      <ColumnView
+    <Column style={[styles.container, style]} {...container}>
+      <StatusBar
+        style={statusBasrStyle ?? "dark"}
+        backgroundColor={
+          statusBarBackgroundColor ?? Colors.surface.background.primary
+        }
+        {...statusBar}
+      />
+      <Column
         style={[styles.contentContainer, contentContainerStyle]}
         {...contentContainer}
       >
         {children}
-      </ColumnView>
+      </Column>
       <NavBar style={[styles.navBar, navBarStyle]} {...navBar}>
         {links}
       </NavBar>
       <SignModal />
-    </ColumnView>
+    </Column>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: Colors.surface.background.secondary,
+  },
   contentContainer: {
     flex: 1,
   },

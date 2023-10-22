@@ -1,13 +1,24 @@
 const Colors = {
-  background: {
-    primary: "#000",
-    secondary: "#1e1e1e",
-  },
-  text: {
-    primary: "#dadada",
+  surface: {
+    background: {
+      primary: "#fff",
+      secondary: "#eee",
+    },
+    text: {
+      primary: "#333",
+      secondary: "#000",
+    },
   },
   button: {
-    primary: "#dadada",
+    background: {
+      primary: "#000",
+      secondary: "#999",
+    },
+    text: {
+      primary: "#eee",
+      secondary: "#fff",
+      tertiary: "#999",
+    },
   },
 };
 

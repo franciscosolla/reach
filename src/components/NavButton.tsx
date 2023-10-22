@@ -1,28 +1,30 @@
 import { Link } from "expo-router";
 import { LinkProps } from "expo-router/src/link/Link";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { PropsWithChildren } from "react";
+import { Pressable, StyleSheet } from "react-native";
 
-import { useSignModal } from "./SignModal";
-import { auth } from "../firebase";
-
-export interface NavButtonProps extends LinkProps {
+export interface NavButtonProps {
+  href: LinkProps["href"];
   userRole?: "guest" | "user";
 }
 
-export default function NavButton({
+export const NavButton: React.FC<PropsWithChildren<NavButtonProps>> = ({
   children,
+  href,
   userRole,
-  ...linkProps
-}: NavButtonProps) {
-  const [user] = useAuthState(auth);
-
-  const { openSignModal } = useSignModal();
-
-  const href = userRole === "user" && !user ? undefined : linkProps.href;
-
+}) => {
   return (
-    <Link href={href} onPress={openSignModal} {...linkProps}>
-      {children}
+    <Link href={href} asChild>
+      <Pressable style={styles.link}>{children}</Pressable>
     </Link>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  link: {
+    minHeight: 42,
+    minWidth: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

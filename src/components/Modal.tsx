@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, ViewProps } from "react-native";
+import { Pressable, StyleSheet, View, ViewProps } from "react-native";
 
 import Column from "./Column";
 import Colors from "../colors";
@@ -22,7 +22,9 @@ export default function Modal({
     <Column style={styles.container}>
       <Pressable style={styles.background} onPress={onClose} />
       <Column style={[styles.contentContainer, style]} {...container}>
-        <Pressable style={styles.topAnchor} onPress={onClose} />
+        <Pressable style={styles.topAnchorButton} onPress={onClose}>
+          <View style={styles.topAnchor} />
+        </Pressable>
         {children}
       </Column>
     </Column>
@@ -39,6 +41,8 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
+    backgroundColor: "#000",
+    opacity: 0.3,
   },
   contentContainer: {
     position: "absolute",
@@ -47,14 +51,20 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.surface.background.primary,
     alignItems: "center",
+    padding: 10,
+    paddingTop: 0,
+    gap: 10,
+  },
+  topAnchorButton: {
+    padding: 10,
+    width: 100,
   },
   topAnchor: {
     borderRadius: 10,
     height: 5,
     width: 100,
-    backgroundColor: Colors.button.primary,
-    margin: 10,
+    backgroundColor: Colors.button.background.primary,
   },
 });

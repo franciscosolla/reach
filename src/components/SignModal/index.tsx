@@ -1,37 +1,55 @@
-import { useCallback, useState } from "react";
+import { router, usePathname } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 
+import { SignIn } from "./SignIn";
+import { SignUp } from "./SignUp";
 import Observable, { useObservable } from "../../Observable";
+import { auth } from "../../firebase";
 import Modal from "../Modal";
-import Text from "../Text";
 
-const isSignModalOpen = new Observable(false);
+const isSignModalOpen = new Observable<string>(undefined);
 
 export default function SignModal() {
   const { isSignModalOpen, closeSignModal } = useSignModal();
 
-  const [step, setStep] = useState<"ID">("ID");
+  const [step, setStep] = useState<"SIGN-IN" | "SIGN-UP">("SIGN-UP");
 
   if (!isSignModalOpen) return null;
 
-  switch (step) {
-    default:
-      return (
-        <Modal open={isSignModalOpen} onClose={closeSignModal}>
-          <Text>Sign in</Text>
-        </Modal>
-      );
-  }
+  const isSignUp = step === "SIGN-UP";
+
+  return (
+    <Modal open={!!isSignModalOpen} onClose={closeSignModal}>
+      {isSignUp ? (
+        <SignUp onSignIn={() => setStep("SIGN-IN")} />
+      ) : (
+        <SignIn onSignUp={() => setStep("SIGN-UP")} />
+      )}
+    </Modal>
+  );
 }
 
 export function useSignModal() {
+  const [user] = useAuthState(auth);
+  const pathname = usePathname();
+
   const [isOpen, setOpen] = useObservable(isSignModalOpen);
 
-  const openSignModal = useCallback(() => setOpen(true), []);
-  const closeSignModal = useCallback(() => setOpen(false), []);
+  const openSignModal = useCallback(() => setOpen(pathname), []);
+  const closeSignModal = useCallback(() => setOpen(undefined), []);
+
+  useEffect(() => {
+    if (user && isOpen) {
+      closeSignModal();
+      router.push(isOpen);
+    }
+  }, [user, isOpen]);
 
   return {
-    isSignModalOpen: isOpen,
+    isSignModalOpen: !!isOpen,
     openSignModal,
     closeSignModal,
+    origin: isOpen,
   };
 }

@@ -12,6 +12,6 @@ export default function ({ children, style, ...props }: TextProps) {
 
 const styles = StyleSheet.create({
   text: {
-    color: Colors.text.primary,
+    color: Colors.surface.text.primary,
   },
 });
