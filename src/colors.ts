@@ -36,6 +36,8 @@ const Colors = {
     /** brightLavender: #761EFB */
     cursor: brightLavender,
   },
+  /** brightLavender: #761EFB */
+  loading: brightLavender,
 };
 
 export default Colors;

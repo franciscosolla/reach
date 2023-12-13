@@ -32,7 +32,7 @@ interface IAction {
 export const createPost = onCall<{
   text: string;
   geohash: string;
-}, Promise<void>>(async (request) => {
+}, Promise<string>>(async (request) => {
   logger.log("Creating post and action...");
   logger.log("data:", JSON.stringify(request.data, null, 4));
 
@@ -44,17 +44,22 @@ export const createPost = onCall<{
   const postRef = db.collection("posts").doc();
 
   try {
-    await postRef.set({
+    const postWriteResult = await postRef.set({
       text: request.data.text,
       createdBy: request.auth?.uid,
       createdAt: firestore.FieldValue.serverTimestamp(),
-    }).then((result) => sqlPool
-      .then((pool) => pool.table<IAction>("actions")
-        .insert({
-          geohash: request.data.geohash,
-          target: postRef.path,
-          created_at: result.writeTime.toMillis(),
-        })));
+    });
+
+    const pool = await sqlPool;
+
+    const query = pool.table<IAction>("actions");
+    await query.insert({
+      geohash: request.data.geohash,
+      target: postRef.path,
+      created_at: postWriteResult.writeTime.toMillis(),
+    });
+
+    return postRef.path;
   } catch (error) {
     console.error("Error:", error);
     throw new HttpsError("internal", "Failed to create action entry");
@@ -73,18 +78,25 @@ export const getPosts = onCall<{
   }
 
   const center: Geopoint = [request.data.latitude, request.data.longitude];
-  const radiusInM = 1000; // 1km
-
+  const radiusInM = 15000; // 15km
   const bounds = geohashQueryBounds(center, radiusInM);
 
   try {
-    const posts: string[] = await sqlPool.then(
-      (pool) => pool.table<IAction>("actions")
-        .select("target")
-        .whereBetween("geohash", bounds[0])
-        .orderBy("created_at", "desc")
-        .limit(10)
-    ).then((actions) => actions.map((action) => action.target));
+    const pool = await sqlPool;
+
+    const query = pool.table<IAction>("actions");
+    query.select("target");
+    query.whereBetween("geohash", bounds[0]);
+
+    for (let i = 1; i < bounds.length; i++) {
+      query.orWhereBetween("geohash", bounds[i]);
+    }
+
+    query.orderBy("created_at", "desc");
+    query.limit(50);
+
+    const actions = await query;
+    const posts = actions.map(({target}) => target);
 
     return posts;
   } catch (error) {

@@ -1,24 +1,23 @@
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View, Text } from "react-native";
+import { Pressable, StyleSheet, TextInput, View, Text, ActivityIndicator } from "react-native";
 
 import Colors from "../src/colors";
 import { app, auth, db } from "../src/firebase";
-import { getCurrentCoordinates, getCurrentGeoHash } from "../src/location";
+import { getCurrentGeoHash } from "../src/location";
 import { Link, Redirect } from "expo-router";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { useDocumentData } from "react-firebase-hooks/firestore";
 import { StatusBar } from "expo-status-bar";
 import { Home as HomeIcon } from "../src/svg/Home";
 import { Profile } from "../src/svg/Profile";
 import { Arrow } from "../src/svg/Arrow";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { DocumentReference, Timestamp, doc } from "firebase/firestore";
-import { IPost } from "../src/data/post";
-import { IUser } from "../src/data/user";
+import { FlatList } from "react-native-gesture-handler";
+import { usePostPaths, usePost, useCreatePost } from "../src/hooks/usePosts";
 
 export default function Home() {
   const [user, loading] = useAuthState(auth);
-  const postsHandler = useRef<{reload: () => Promise<void>}>(null).current;
+  const postsRef = useRef<{reload: () => Promise<void>}>(null);
 
   if (!loading && !user) {
     return <Redirect href="/signUp" />
@@ -27,8 +26,8 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor={Colors.surface.background} />
-      <Posts />
-      <Input onSubmit={() => postsHandler?.reload()} />
+      <Posts ref={postsRef} />
+      <Input onSubmit={() => postsRef.current?.reload()} />
       <View style={styles.navBar}>
         <View style={{ flex: 2 }} />
         <HomeIcon active />
@@ -48,8 +47,8 @@ export default function Home() {
   );
 }
 
-const getElapsedTimeText = (timestamp: Timestamp) => {
-  const elapsed = (Date.now() - timestamp.toMillis()) / 1000;
+const getElapsedTimeText = (timestamp: number) => {
+  const elapsed = (Date.now() - timestamp) / 1000;
 
   if (elapsed < 60) {
     return `${Math.floor(elapsed)}s`;
@@ -66,58 +65,72 @@ const getElapsedTimeText = (timestamp: Timestamp) => {
   return `${Math.floor(elapsed / 86400)}d`;
 }
 
-const Post: React.FC<{ path: string }> = ({ path }) => {
-  const [post] = useDocumentData(doc(db, path) as DocumentReference<IPost>, { snapshotOptions: {} });
-  const [user] = useDocumentData(post?.createdBy ? doc(db, "users", post.createdBy) as DocumentReference<IUser> : undefined);
 
-  if (!post || !user) {
+
+const Post: React.FC<{ path: string; onLoad?: () => void }> = ({ path, onLoad }) => {
+  const post = usePost(path);
+
+  useEffect(() => {
+    if (post && onLoad) {
+      onLoad()
+    }
+  }, [post, onLoad]);
+
+  if (!post) {
     return null;
   }
 
   return (
-    <Text>
-      <Text style={styles.username}>{`@${user?.username}`}</Text>
-      <Text style={styles.postText}>{` ${post.text} `}</Text>
-      <Text style={styles.postTime}>{getElapsedTimeText(post.createdAt)}</Text>
-    </Text>
-  )
+    <View style={styles.post}>
+      <Text>
+        <Text style={styles.username}>{`@${post.username}`}</Text>
+        <Text style={styles.postText}>{` ${post.text} `}</Text>
+        <Text style={styles.postTime}>{getElapsedTimeText(post.createdAt)}</Text>
+      </Text>
+    </View>
+  );
 };
 
-const Posts: React.FC = forwardRef<{reload: () => Promise<void>}>((_, ref) => {
-  const [posts, setPosts] = useState([]);
-
-  const loadPosts = useCallback(() => getCurrentCoordinates().then(
-    ([latitude, longitude]) => httpsCallable<{ latitude, longitude }, string[]>(getFunctions(app), "getPosts")({ latitude, longitude })
-      .then((result) => setPosts(result.data))
-  ), []);
+const Posts = forwardRef<{reload: () => Promise<void>}>((_, ref) => {
+  const { paths, load: loadPostPaths, isLoading, updatedAt } = usePostPaths();
+  const [hasContent, setHasContent] = useState(false);
 
   useEffect(() => {
-    loadPosts();
+    if (!updatedAt || (Date.now() - updatedAt > 1000 * 60)) {
+      loadPostPaths();
+    }
   }, []);
 
   useImperativeHandle(ref, () => ({
-    reload: loadPosts,
+    reload: loadPostPaths,
   }), []);
 
   return (
     <View style={styles.posts}>
-      {posts.reverse().map((post) => (
-        <Post path={post} key={post} />
-      ))}
+      <FlatList
+        data={paths}
+        renderItem={({ item: path }) => <Post path={path} onLoad={!hasContent ? () => setHasContent(true) : undefined} />}
+        keyExtractor={(path) => path}
+        inverted
+        ListHeaderComponent={isLoading || !hasContent ? <ActivityIndicator size="large" color={Colors.loading} /> : null}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   )
 });
 
+const createPost = httpsCallable<{ text: string; geohash: string }, string>(getFunctions(app), "createPost");
+
 const Input: React.FC<{ onSubmit?: () => void }> = (props) => {
   const [text, setText] = useState("");
 
-  const onSubmit = () =>
-    getCurrentGeoHash()
-      .then((geohash) => httpsCallable(getFunctions(app), "createPost")({ text, geohash }))
-      .then(() => setText(""))
-      .then(() => props.onSubmit?.())
-      .catch((error) => console.log(error));
+  const [createPost, isLoading] = useCreatePost();
 
+  const onSubmit = async () => {
+    await createPost(text);
+    setText("");
+    props.onSubmit?.();
+  }
   return (
     <View style={styles.input}>
       <TextInput
@@ -126,6 +139,7 @@ const Input: React.FC<{ onSubmit?: () => void }> = (props) => {
         onChangeText={setText}
         cursorColor={Colors.input.cursor}
         multiline
+        editable={!isLoading}
       />
       <Pressable
         style={({ pressed }) => ({
@@ -135,7 +149,7 @@ const Input: React.FC<{ onSubmit?: () => void }> = (props) => {
         onPress={onSubmit}
         disabled={!text}
       >
-        <Arrow />
+        {isLoading ? <ActivityIndicator size="small" color={Colors.loading} /> : <Arrow />}
       </Pressable>
     </View>
   )
@@ -155,6 +169,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
     color: Colors.surface.text.primary,
+    justifyContent: "flex-end",
+  },
+  post: {
+    marginVertical: 4,
   },
   postText: {
     color: Colors.surface.text.primary,
