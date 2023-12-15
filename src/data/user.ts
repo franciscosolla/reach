@@ -1,7 +1,10 @@
 import { User } from "firebase/auth";
 import { DocumentData } from "firebase/firestore";
+import { Cache } from "./cache";
 
-export interface IUser extends DocumentData {
+interface IUserData extends DocumentData {
   email: string;
   username: User["displayName"];
 }
+
+export const usersCache = new Cache<IUserData>();

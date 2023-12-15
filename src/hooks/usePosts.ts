@@ -16,8 +16,8 @@ export const usePostPaths = () => {
   const [paths, setPaths] = useObservable(pathsState);
   const [isLoading, setIsLoading] = useState(false);
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
+  const fetch = useCallback(async () => {
+    console.log("loading...")
 
     try {
       const [latitude, longitude] = await getCurrentCoordinates();
@@ -28,10 +28,17 @@ export const usePostPaths = () => {
     }
 
     updatedAt = Date.now();
+  }, []);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+
+    await fetch();
+    
     setIsLoading(false);
   }, []);
 
-  return { paths, load, isLoading, updatedAt };
+  return { paths, load, reload: fetch, isLoading, updatedAt };
 }
 
 interface ICache<DataType extends DocumentData = DocumentData> {
@@ -75,6 +82,23 @@ export const usePost = (postPath: string) => {
   });
 
   useEffect(() => {
+    const getUserData = async (postData: IPostData) => {
+      const userRef = doc(db, "users", postData.createdBy) as DocumentReference<IUserData>;
+      const userSnapshot = await getDoc(userRef);
+      const userData = userSnapshot.data();
+
+      documentDataCache.set(postData.createdBy, {
+        data: userData,
+        updatedAt: Date.now(),
+      });
+
+      setPost({
+        username: userData.username,
+        text: postData.text,
+        createdAt: postData.createdAt.toMillis(),
+      });
+    }
+
     if (!postCache && postPath) {
       const getPostData = async () => {
         const postRef = doc(db, postPath) as DocumentReference<IPostData>;
@@ -87,20 +111,7 @@ export const usePost = (postPath: string) => {
         });
 
         if (!userCache || isOld(userCache)) {
-          const userRef = doc(db, "users", postData.createdBy) as DocumentReference<IUserData>;
-          const userSnapshot = await getDoc(userRef);
-          const userData = userSnapshot.data();
-
-          documentDataCache.set(postData.createdBy, {
-            data: userData,
-            updatedAt: Date.now(),
-          });
-
-          setPost({
-            username: userData.username,
-            text: postData.text,
-            createdAt: postData.createdAt.toMillis(),
-          });
+          getUserData(postData);
         } else {
           setPost({
             username: userCache.data.username,
@@ -111,6 +122,8 @@ export const usePost = (postPath: string) => {
       }
 
       getPostData();
+    } else if (!userCache || isOld(userCache)) {
+      getUserData(postCache.data);
     }
   }, [postCache, postPath, userCache]);
 

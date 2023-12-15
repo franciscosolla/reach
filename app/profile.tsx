@@ -18,7 +18,7 @@ export default function Profile() {
   
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={Colors.surface.background} />
+      <StatusBar backgroundColor={Colors.surface.background} style="dark" />
       <View style={styles.profile}>
         <Text style={styles.username}>{`@${user.displayName}`}</Text>
         <Text style={styles.email}>{user.email}</Text>

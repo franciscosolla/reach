@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
 import Colors from "../src/colors";
 import { SpeechBubble } from "../src/svg/SpeechBubble";
 import { Email } from "../src/svg/Email";
@@ -12,6 +12,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { Link, Redirect } from "expo-router";
 import { pressable } from "../src/styles/button";
 import { input, textInput } from "../src/styles/input";
+import { StatusBar } from "expo-status-bar";
 
 
 export default function SignUp() {
@@ -40,6 +41,7 @@ export default function SignUp() {
 
   return (
     <View style={styles.container}>
+      <StatusBar backgroundColor={Colors.surface.background} style="dark" />
       <SpeechBubble />
       <Input
         icon={<Email />}
@@ -73,7 +75,7 @@ export default function SignUp() {
           </Pressable>
         </Link>
         <Pressable onPress={onSubmit} style={pressable}>
-          <Arrow />
+          {isLoading ? <ActivityIndicator color={Colors.loading} size="small" /> : <Arrow />}
         </Pressable>
       </View>
     </View>

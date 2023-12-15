@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
 import Colors from "../src/colors";
 import { SpeechBubble } from "../src/svg/SpeechBubble";
 import { Email } from "../src/svg/Email";
@@ -44,7 +44,7 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={Colors.surface.background} />
+      <StatusBar backgroundColor={Colors.surface.background} style="dark" />
       <SpeechBubble />
       <Input
         icon={!username.length || validateUsername(username) ? <User /> : <Email />}
@@ -77,7 +77,7 @@ export default function SignIn() {
             transform: [{ scale: pressed ? 0.95 : 1 }],
           })}
         >
-          <Arrow />
+          {isLoading ? <ActivityIndicator color={Colors.loading} size="small" /> : <Arrow />}
         </Pressable>
       </View>
     </View>

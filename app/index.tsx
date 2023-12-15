@@ -1,17 +1,14 @@
-import React, { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View, Text, ActivityIndicator } from "react-native";
 
 import Colors from "../src/colors";
-import { app, auth, db } from "../src/firebase";
-import { getCurrentGeoHash } from "../src/location";
+import { auth } from "../src/firebase";
 import { Link, Redirect } from "expo-router";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { StatusBar } from "expo-status-bar";
 import { Home as HomeIcon } from "../src/svg/Home";
 import { Profile } from "../src/svg/Profile";
 import { Arrow } from "../src/svg/Arrow";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { DocumentReference, Timestamp, doc } from "firebase/firestore";
 import { FlatList } from "react-native-gesture-handler";
 import { usePostPaths, usePost, useCreatePost } from "../src/hooks/usePosts";
 
@@ -25,7 +22,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={Colors.surface.background} />
+      <StatusBar backgroundColor={Colors.surface.background} style="dark" />
       <Posts ref={postsRef} />
       <Input onSubmit={() => postsRef.current?.reload()} />
       <View style={styles.navBar}>
@@ -70,18 +67,13 @@ const getElapsedTimeText = (timestamp: number) => {
 const Post: React.FC<{ path: string; onLoad?: () => void }> = ({ path, onLoad }) => {
   const post = usePost(path);
 
-  useEffect(() => {
-    if (post && onLoad) {
-      onLoad()
-    }
-  }, [post, onLoad]);
-
   if (!post) {
     return null;
   }
 
   return (
     <View style={styles.post}>
+      <StatusBar backgroundColor={Colors.surface.background} style="dark" />
       <Text>
         <Text style={styles.username}>{`@${post.username}`}</Text>
         <Text style={styles.postText}>{` ${post.text} `}</Text>
@@ -92,34 +84,36 @@ const Post: React.FC<{ path: string; onLoad?: () => void }> = ({ path, onLoad })
 };
 
 const Posts = forwardRef<{reload: () => Promise<void>}>((_, ref) => {
-  const { paths, load: loadPostPaths, isLoading, updatedAt } = usePostPaths();
-  const [hasContent, setHasContent] = useState(false);
+  const { paths, load: loadPostPaths, reload: reloadPostPaths, isLoading, updatedAt } = usePostPaths();
 
   useEffect(() => {
-    if (!updatedAt || (Date.now() - updatedAt > 1000 * 60)) {
+    if (!updatedAt || (Date.now() - updatedAt > 1000 * 30)) {
       loadPostPaths();
     }
-  }, []);
+
+    const intervalId = setInterval(() => reloadPostPaths(), 1000 * 30);
+
+    return () => clearInterval(intervalId);
+  }, [loadPostPaths, reloadPostPaths]);
 
   useImperativeHandle(ref, () => ({
     reload: loadPostPaths,
-  }), []);
+  }), [loadPostPaths]);
 
   return (
     <View style={styles.posts}>
       <FlatList
+        contentContainerStyle={{ flexGrow: 1 }}
         data={paths}
-        renderItem={({ item: path }) => <Post path={path} onLoad={!hasContent ? () => setHasContent(true) : undefined} />}
+        renderItem={({ item: path }) => <Post path={path} />}
         keyExtractor={(path) => path}
         inverted
-        ListHeaderComponent={isLoading || !hasContent ? <ActivityIndicator size="large" color={Colors.loading} /> : null}
+        ListHeaderComponent={isLoading ? <ActivityIndicator size="large" color={Colors.loading} /> : null}
         showsVerticalScrollIndicator={false}
       />
     </View>
   )
 });
-
-const createPost = httpsCallable<{ text: string; geohash: string }, string>(getFunctions(app), "createPost");
 
 const Input: React.FC<{ onSubmit?: () => void }> = (props) => {
   const [text, setText] = useState("");
@@ -131,6 +125,7 @@ const Input: React.FC<{ onSubmit?: () => void }> = (props) => {
     setText("");
     props.onSubmit?.();
   }
+
   return (
     <View style={styles.input}>
       <TextInput
